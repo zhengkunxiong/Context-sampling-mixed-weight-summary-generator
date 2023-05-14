@@ -1,13 +1,12 @@
-# DYLE
+# cmsg
 
-Source code for ACL 2022 paper [DYLE: Dynamic Latent Extraction for Abstractive Long-Input Summarization](https://arxiv.org/pdf/2110.08168.pdf)
 
 ## Dependency
 
 Install dependencies via:
 ```
-conda create -n dyle python=3.9.6
-conda activate dyle
+conda create -n cmsg python=3.9.6
+conda activate cmsg
 conda install pytorch==1.8.0 torchvision==0.9.0 torchaudio==0.8.0 cudatoolkit=11.1 -c pytorch -c conda-forge
 pip install nltk==3.6.2 pyrouge==0.1.3 transformers==4.8.1 rouge==1.0.0 datasets==1.11.0
 ```
