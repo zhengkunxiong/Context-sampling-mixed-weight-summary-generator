@@ -6,9 +6,9 @@ import os
 class Config(object):
 
     def __init__(self):
-        self.target_task = ['qmsum-latent',  # 0: qmsum-latent
-                            'arxiv-latent',  # 1: arxiv-latent
-                            'govreport-latent',  # 2: govreport-latent
+        self.target_task = ['qmsum',  # 0: qmsum
+                            'arxiv',  # 1: arxiv
+                            'govreport',  # 2: govreport
                             ][0]
 
         self.retriever = ['roberta',"bert"
@@ -22,13 +22,13 @@ class Config(object):
                                        }[self.generator]
 
         # Training configuration.
-        self.just_test=False
+        self.use_context=True
         self.get_checkpoint=True
         self.debug=False
         self.use_overall_model=True
         self.max_grad_norm = 1.0
         self.cls_lr = 5e-5 
-        self.gen_lr = 5e-5 
+        self.gen_lr = 5e-6
         self.overwrite_cache = False
         self.weight_decay = 0.0  
 
@@ -62,7 +62,7 @@ class Config(object):
         else:
             raise NotImplementedError()
 
-        if self.target_task in ['qmsum-latent',
+        if self.target_task in ['qmsum',
                                 ]:
             self.use_oracle = True
             self.use_query = True
@@ -77,14 +77,14 @@ class Config(object):
             self.top_k = 25  
             self.min_length = 100 
             self.no_repeat_ngram_size = 2 
-            self.max_source_len = 500
+            self.max_source_len = 300
             self.max_target_len = 600
 
             self.consistency_alpha = [0, 1, 2, 3, 5, 10][1] 
             self.detach_generator_consistency = [False, True][1] 
             self.length_penalty = 1
-            self.save_steps = 157
-        elif self.target_task in ['arxiv-latent',
+            self.save_steps = 200
+        elif self.target_task in ['arxiv',
                                   ]:
             self.use_oracle = True
             self.use_query = False
@@ -109,7 +109,7 @@ class Config(object):
             self.length_penalty = 1
             self.save_steps = 500 
             
-        elif self.target_task in ['govreport-latent',
+        elif self.target_task in ['govreport',
                                   ]:
             self.use_oracle = True
             self.use_query = False
@@ -151,9 +151,9 @@ class Config(object):
     def model_specific_dir(self, root):
         """ model-normalization """
         directory = {
-            'qmsum-latent': 'QMSum-DYLE',
-            'arxiv-latent': 'ArXiv-DYLE',
-            'govreport-latent': 'GovReport-DYLE',
+            'qmsum': 'QMSum',
+            'arxiv': 'ArXiv',
+            'govreport': 'GovReport',
         }[self.target_task]
         ret = os.path.join(root, directory)
         if not os.path.exists(ret):

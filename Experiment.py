@@ -41,26 +41,26 @@ os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 class Experiment(object):
 
     def __init__(self, load_train=True):
+        self.retriever_tokenizer = RobertaTokenizer.from_pretrained(config.retriever_name_or_path,
+                                                                    cache_dir=r"./models/roberta", local_files_only=1)
 
-        # # Load retriever tokenizer.
-        # self.retriever_tokenizer = BertTokenizer.from_pretrained(config.retriever_name_or_path,cache_dir=r"./models/bert_tiny",local_files_only=1)
-        #
-        # # Load retriever model.
-        # self.retriever = BertForTokenClassification.from_pretrained(config.retriever_name_or_path,
-        #                                                                num_labels=1,
-        #                                                                gradient_checkpointing=True,cache_dir=r"./models/bert_tiny",local_files_only=1)
-        self.retriever_tokenizer = RobertaTokenizer.from_pretrained(config.retriever_name_or_path,cache_dir=r"./models/roberta",local_files_only=1)
+        self.generator_tokenizer = BartTokenizer.from_pretrained(config.generator_name_or_path,
+                                                                 cache_dir=r"models/models--facebook--bart-large",
+                                                                 local_files_only=1)
 
         # Load retriever model.
         self.retriever = RobertaForTokenClassification.from_pretrained(config.retriever_name_or_path,
                                                                        num_labels=1,
-                                                                       gradient_checkpointing=True,cache_dir=r"./models/roberta",local_files_only=1)
+                                                                       gradient_checkpointing=True,
+                                                                       cache_dir=r"./models/roberta",
+                                                                       local_files_only=1)
 
         # Load generator tokenizer.
-        self.generator_tokenizer = BartTokenizer.from_pretrained(config.generator_name_or_path,cache_dir=r"models/models--facebook--bart-large",local_files_only=1)
 
         # Load generator model.
-        self.generator = DynamicRagForGeneration.from_pretrained(config.generator_name_or_path,n_docs=config.top_k,gradient_checkpointing=True,use_overall_model=config.use_overall_model)
+        self.generator = DynamicRagForGeneration.from_pretrained(config.generator_name_or_path, n_docs=config.top_k,
+                                                                 gradient_checkpointing=True,
+                                                                 use_overall_model=config.use_overall_model)
 
         # Load loss.
         self.criterion_cls = torch.nn.CrossEntropyLoss(reduction='none')
@@ -70,19 +70,20 @@ class Experiment(object):
 
         # Load dataset.
         print('----- Loading data -----')
-        if config.target_task in ['qmsum-latent',
+
+        if config.target_task in ['qmsum',
                                   ]:
             if load_train:
                 self.train_set = QMSum('train', retriever_tokenizer=self.retriever_tokenizer, generator_tokenizer=self.generator_tokenizer)
             self.val_set = QMSum('valid', retriever_tokenizer=self.retriever_tokenizer, generator_tokenizer=self.generator_tokenizer)
             self.test_set = QMSum('test', retriever_tokenizer=self.retriever_tokenizer, generator_tokenizer=self.generator_tokenizer)
-        elif config.target_task in ['arxiv-latent',
+        elif config.target_task in ['arxiv',
                                     ]:
             if load_train:
                 self.train_set = Arxiv('train', retriever_tokenizer=self.retriever_tokenizer, generator_tokenizer=self.generator_tokenizer)
             self.val_set = Arxiv('valid', retriever_tokenizer=self.retriever_tokenizer, generator_tokenizer=self.generator_tokenizer)
             self.test_set = Arxiv('test', retriever_tokenizer=self.retriever_tokenizer, generator_tokenizer=self.generator_tokenizer)
-        elif config.target_task in ["govreport-latent",
+        elif config.target_task in ["govreport",
                                     ]:
             if load_train:
                 self.train_set = GovReport('train', retriever_tokenizer=self.retriever_tokenizer, generator_tokenizer=self.generator_tokenizer)
@@ -169,16 +170,15 @@ class Experiment(object):
                 getattr(self, module).train(mode=mode)
 
     def train(self):
-        if not config.just_test:
-            self.build_optim()
-            # Train.
-            epoch = 0
-            self.zero_grad()
-            while True:
-                    self.train_epoch(epoch)
-                    epoch += 1
-                    if self.decay_num >= config.max_decay_num:
-                        break
+        self.build_optim()
+        # Train.
+        epoch = 0
+        self.zero_grad()
+        while True:
+            self.train_epoch(epoch)
+            epoch += 1
+            if self.decay_num >= config.max_decay_num:
+                break
 
         # Test.
         self.test()
@@ -222,15 +222,15 @@ class Experiment(object):
         self.restore_model(['retriever', 'generator'])
 
         # Evaluate.
-        if config.target_task in ['qmsum-latent',
-                                  'arxiv-latent',
-                                  'govreport-latent',
+        if config.target_task in ['qmsum',
+                                  'arxiv',
+                                  'govreport',
                                   ]:
-            if config.target_task in ['govreport-latent']:
+            if config.target_task in ['govreport']:
                 beam_size = 4  # Use beam_size = 1 for validation
-            elif config.target_task in ['arxiv-latent']:
+            elif config.target_task in ['arxiv']:
                 beam_size = 5
-            elif config.target_task in ['qmsum-latent']:
+            elif config.target_task in ['qmsum']:
                 beam_size = 1
             else:
                 beam_size = 1
@@ -261,9 +261,9 @@ class Experiment(object):
             self.iter_num += 1
             self.set_training(mode=True)
 
-            if config.target_task in ['qmsum-latent',
-                                      'arxiv-latent',
-                                      'govreport-latent',
+            if config.target_task in ['qmsum',
+                                      'arxiv',
+                                      'govreport',
                                       ]:
                 # Process data.
                 if config.gpu:
@@ -347,7 +347,7 @@ class Experiment(object):
 
             # Evaluation.
             if self.iter_num % (config.save_steps * config.gradient_accumulation_steps) == 0:
-                if config.target_task in ['qmsum-latent','govreport-latent', 'arxiv-latent']:
+                if config.target_task in ['qmsum','govreport', 'arxiv']:
                     beam_size = 1  # Use beam_size = 1 for validation
                 else:
                     beam_size = 5
@@ -450,7 +450,7 @@ class Experiment(object):
 
                 # top_k:
                 decoded_topk = self.generator_tokenizer.batch_decode(context_input_ids[:, retriever_topk_indices].contiguous().view(config.top_k, -1), skip_special_tokens=True)
-                if config.target_task in ['govreport-latent', "arxiv-latent"]:
+                if config.target_task in ['govreport', "arxiv"]:
                     cleaned_topk = "\n".join(sent_tokenize(" ".join(word_tokenize(" ".join([sent for sent, prob in zip(decoded_topk, torch.softmax(doc_scores[0], dim=0)) if prob > 1e-10])))))
                     topks.append(cleaned_topk)
 
