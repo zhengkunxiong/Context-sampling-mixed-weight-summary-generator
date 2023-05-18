@@ -46,12 +46,3 @@ python train.py
 python test.py
 ```
 
-## Citation
-```bibtex
-@inproceedings{mao2021dyle,
-  title={DYLE: Dynamic Latent Extraction for Abstractive Long-Input Summarization},
-  author={Mao, Ziming and Wu, Chen Henry and Ni, Ansong and Zhang, Yusen and Zhang, Rui and Yu, Tao and Deb, Budhaditya and Zhu, Chenguang and Awadallah, Ahmed H and Radev, Dragomir},
-  booktitle={ACL 2022},
-  year={2022}
-}
-``` 
