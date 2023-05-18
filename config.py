@@ -77,7 +77,7 @@ class Config(object):
             self.top_k = 25  
             self.min_length = 100 
             self.no_repeat_ngram_size = 2 
-            self.max_source_len = 300
+            self.max_source_len = 500
             self.max_target_len = 600
 
             self.consistency_alpha = [0, 1, 2, 3, 5, 10][1] 
