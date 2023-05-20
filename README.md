@@ -40,7 +40,7 @@ python train.py
 ```
 
 ### Evaluation
-- First download the checkpoint from [Google Drive](https://drive.google.com/drive/folders/1xSYhOB-z9dwKz684yaer3wdXj4ajQnsv?usp=sharing) and place the folders under `./outputs/saved_model/`
+- First download the checkpoint from [Google Drive](https://drive.google.com/drive/folders/1diQnhUjdi4pFS3GDrqZGvyaQPT3Mnt7w?usp=sharing) and place the folders under `./outputs/saved_model/`
 - Set the `self.target_task` flag in `config.py` to choose the target task
 ```
 python test.py
